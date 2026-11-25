@@ -1,0 +1,24 @@
+# Downloaded AI model weights (fetched at build time or runtime)
+src/dips/models/*.onnx
+
+# Python / virtualenv / packaging artifacts
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+*.AppImage
+*.deb
+*.tar.gz
+*.zip
+*.spec.bak
+
+# OS / IDE metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

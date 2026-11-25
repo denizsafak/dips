@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dips"
+version = "1.0.0"
+description = "DIP Studio - Cross-Platform Digital Image Processing Studio"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Deniz Şafak", email = "denizsafak98@gmail.com" },
+]
+requires-python = ">=3.10"
+dependencies = [
+    "PyQt6>=6.6.0",
+    "opencv-python-headless>=4.9.0",
+    "numpy>=1.26.0",
+    "Pillow>=10.0.0",
+    "onnxruntime>=1.17.0",
+]
+
+[project.optional-dependencies]
+gpu-cuda = [
+    "onnxruntime-gpu>=1.17.0",
+]
+gpu-directml = [
+    "onnxruntime-directml>=1.17.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pyinstaller>=6.0.0",
+]
+
+[project.scripts]
+dips = "dips.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dips = [
+    "assets/*.svg",
+    "assets/*.png",
+    "assets/*.ico",
+    "assets/*.icns",
+    "models/*.onnx",
+    "samples/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
