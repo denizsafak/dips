@@ -266,7 +266,7 @@ class HistogramPanel(QWidget):
 
         # Responsive stat labels without background card container
         self._stats_frame = QWidget()
-        self._stats_frame.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        self._stats_frame.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
         self._stats_grid = QGridLayout(self._stats_frame)
         self._stats_grid.setContentsMargins(2, 2, 2, 0)
         self._stats_grid.setHorizontalSpacing(10)
