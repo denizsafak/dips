@@ -50,7 +50,7 @@ def normalize_version(version: str) -> str:
     return cleaned
 
 
-def build_desktop_entry(exec_target: str, *, include_appimage_keys: bool = False) -> str:
+def build_desktop_entry(exec_target: str, *, include_appimage_keys: bool = False, app_version: str = "1.0.1") -> str:
     lines = [
         "[Desktop Entry]",
         "Type=Application",
@@ -65,7 +65,7 @@ def build_desktop_entry(exec_target: str, *, include_appimage_keys: bool = False
         "StartupWMClass=DIP Studio",
     ]
     if include_appimage_keys:
-        lines.append("X-AppImage-Version=1.0.0")
+        lines.append(f"X-AppImage-Version={app_version}")
     return "\n".join(lines) + "\n"
 
 
@@ -327,7 +327,10 @@ def build_appimage(
     shutil.copytree(bundle_dir, usr_bin, symlinks=True)
     os.chmod(usr_bin / BINARY_NAME, 0o755)
 
-    (appdir / DESKTOP_FILE_NAME).write_text(build_desktop_entry(BINARY_NAME, include_appimage_keys=True), encoding="utf-8")
+    (appdir / DESKTOP_FILE_NAME).write_text(
+        build_desktop_entry(BINARY_NAME, include_appimage_keys=True, app_version=normalize_version(version)),
+        encoding="utf-8",
+    )
     shutil.copy2(icon_png, appdir / "dips.png")
     shutil.copy2(icon_png, appdir / ".DirIcon")
 

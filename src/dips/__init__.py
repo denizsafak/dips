@@ -19,7 +19,7 @@ def _read_version() -> str:
                 return ver.strip()
         except Exception:
             pass
-    return "1.0.0"
+    return "1.0.1"
 
 
 __app_name__ = "DIP Studio"

@@ -69,6 +69,8 @@ def ensure_uint8(img: np.ndarray) -> np.ndarray:
     if img is None:
         raise ValueError("Image array is None")
     if img.dtype != np.uint8:
+        if np.issubdtype(img.dtype, np.floating):
+            img = np.nan_to_num(img, nan=0.0, posinf=255.0, neginf=0.0)
         img = np.clip(img, 0, 255).astype(np.uint8)
     if img.ndim == 3 and img.shape[2] == 1:
         img = img[:, :, 0]
@@ -80,6 +82,8 @@ def to_bgr(img: np.ndarray) -> np.ndarray:
     img = ensure_uint8(img)
     if img.ndim == 2:
         return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    if img.shape[2] == 2:
+        return cv2.cvtColor(img[:, :, 0], cv2.COLOR_GRAY2BGR)
     if img.shape[2] == 4:
         return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
     return img
@@ -90,6 +94,8 @@ def to_gray(img: np.ndarray) -> np.ndarray:
     img = ensure_uint8(img)
     if img.ndim == 2:
         return img
+    if img.shape[2] == 2:
+        return np.ascontiguousarray(img[:, :, 0])
     if img.shape[2] == 4:
         return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

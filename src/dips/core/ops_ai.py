@@ -5,6 +5,7 @@ from __future__ import annotations
 import atexit
 from functools import lru_cache
 import gc
+import threading
 from typing import Any
 import cv2
 import numpy as np
@@ -47,6 +48,10 @@ def session_device_label(sess: ort.InferenceSession) -> str:
             if top == prov:
                 return label
     return "CPU"
+
+
+_cv_dnn_lock = threading.Lock()
+_yunet_lock = threading.Lock()
 
 
 @lru_cache(maxsize=8)
@@ -95,9 +100,10 @@ def _predict_u2net_matte(bgr: np.ndarray) -> np.ndarray:
     norm = (rgb - mean) / std
     blob = np.transpose(norm, (2, 0, 1))[None, ...].astype(np.float32)
 
-    net = _load_cv_onnx("u2netp.onnx")
-    net.setInput(blob)
-    pred = net.forward()
+    with _cv_dnn_lock:
+        net = _load_cv_onnx("u2netp.onnx")
+        net.setInput(blob)
+        pred = net.forward()
     matte_small = pred[0, 0]
     mn, mx = float(matte_small.min()), float(matte_small.max())
     if mx > mn + 1e-6:
@@ -206,8 +212,9 @@ def _run_espcn_3x_y(y_channel: np.ndarray) -> np.ndarray:
     for y0 in ys:
         for x0 in xs:
             patch = np.ascontiguousarray(y_norm[y0 : y0 + tile, x0 : x0 + tile])
-            net.setInput(patch[None, None, :, :])
-            sr_patch = net.forward()[0, 0]
+            with _cv_dnn_lock:
+                net.setInput(patch[None, None, :, :])
+                sr_patch = net.forward()[0, 0]
             oy, ox = y0 * scale, x0 * scale
             ey, ex = min(out_h, oy + tile * scale), min(out_w, ox + tile * scale)
             ph, pw = ey - oy, ex - ox
@@ -327,7 +334,11 @@ def op_ai_bg_remove(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray
 
     fg_pct = round(float((soft > 0.5).mean() * 100.0), 1)
     model_file, model_tag = _matte_model_meta(model_choice)
-    device_label = session_device_label(_load_ort_session(model_file))
+    device_label = (
+        "CPU (OpenCV DNN)"
+        if model_file == "u2netp.onnx"
+        else session_device_label(_load_ort_session(model_file))
+    )
 
     if bg_mode == "Transparent (Alpha)":
         alpha_u8 = np.clip(np.round(soft * 255.0), 0, 255).astype(np.uint8)
@@ -369,10 +380,11 @@ def op_ai_bokeh(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, di
 
 
 def _detect_faces(bgr: np.ndarray, conf: float) -> list[np.ndarray]:
-    det = _load_yunet(round(conf, 2), 0.3)
     h, w = bgr.shape[:2]
-    det.setInputSize((w, h))
-    _, faces = det.detect(bgr)
+    with _yunet_lock:
+        det = _load_yunet(round(conf, 2), 0.3)
+        det.setInputSize((w, h))
+        _, faces = det.detect(bgr)
     if faces is None:
         return []
     return [row for row in faces]
@@ -441,10 +453,11 @@ def op_ai_style_transfer(img: np.ndarray, params: dict[str, Any]) -> tuple[np.nd
     keep_color = bool(params.get("preserve_color", False))
 
     model_file = "candy-9.onnx" if style_name == "Candy" else "mosaic-9.onnx"
-    net = _load_cv_onnx(model_file)
     blob = cv2.dnn.blobFromImage(bgr, 1.0, (224, 224), (0, 0, 0), swapRB=True, crop=False)
-    net.setInput(blob)
-    raw = net.forward()[0]
+    with _cv_dnn_lock:
+        net = _load_cv_onnx(model_file)
+        net.setInput(blob)
+        raw = net.forward()[0]
     rgb_out = np.transpose(raw, (1, 2, 0))
     rgb_out = np.clip(np.round(rgb_out), 0, 255).astype(np.uint8)
     bgr_styled = cv2.cvtColor(rgb_out, cv2.COLOR_RGB2BGR)
@@ -915,7 +928,9 @@ def op_ai_depth_relight(img: np.ndarray, params: dict[str, Any]) -> tuple[np.nda
 
 def op_ai_face_auto_crop(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, dict[str, Any]]:
     """Smart portrait cropper driven by YuNet face detection and target aspect framing."""
+    has_alpha = img.ndim == 3 and img.shape[2] == 4
     bgr = to_bgr(img)
+    src = img if has_alpha else bgr
     h, w = bgr.shape[:2]
     conf = float(params.get("confidence", 0.50))
     aspect_choice = str(params.get("aspect", "1:1 (Avatar)"))
@@ -940,8 +955,8 @@ def op_ai_face_auto_crop(img: np.ndarray, params: dict[str, Any]) -> tuple[np.nd
             ch = max(16, int(round(cw / target_ratio)))
         x0 = max(0, (w - cw) // 2)
         y0 = max(0, (h - ch) // 2)
-        cropped = bgr[y0 : y0 + ch, x0 : x0 + cw]
-        return cropped, {"model": "YuNet-2023", "faces_found": 0, "fallback": "center_crop"}
+        cropped = src[y0 : y0 + ch, x0 : x0 + cw]
+        return np.ascontiguousarray(cropped), {"model": "YuNet-2023", "faces_found": 0, "fallback": "center_crop"}
 
     primary = max(faces, key=lambda f: float(f[2]) * float(f[3]))
     fx, fy, fw, fh = float(primary[0]), float(primary[1]), float(primary[2]), float(primary[3])
@@ -959,8 +974,8 @@ def op_ai_face_auto_crop(img: np.ndarray, params: dict[str, Any]) -> tuple[np.nd
     y0 = int(round(np.clip(cy - ch * 0.42, 0.0, max(0.0, h - ch))))
     x1 = min(w, x0 + max(16, int(round(cw))))
     y1 = min(h, y0 + max(16, int(round(ch))))
-    cropped = bgr[y0:y1, x0:x1]
-    return cropped, {
+    cropped = src[y0:y1, x0:x1]
+    return np.ascontiguousarray(cropped), {
         "model": "YuNet-2023",
         "faces_found": len(faces),
         "crop": f"{cropped.shape[1]}×{cropped.shape[0]}",

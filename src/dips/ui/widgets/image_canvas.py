@@ -824,10 +824,16 @@ class DualViewport(QWidget):
                     pm.scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 )
                 title_row.addWidget(icon_lbl)
-        title = QLabel("DIP Studio")
+        title = QLabel("DIPS")
         title.setStyleSheet("font-size: 20px; font-weight: 700;")
         title_row.addWidget(title)
         card_lay.addLayout(title_row)
+
+        subtitle = QLabel("Digital Image Processing Studio")
+        subtitle.setObjectName("MutedLabel")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle.setStyleSheet("font-size: 12px;")
+        card_lay.addWidget(subtitle)
 
         sub = QLabel(
             "Drag and drop an image or .dips.json preset anywhere here,\n"

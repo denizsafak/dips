@@ -38,7 +38,14 @@ from ..core import (
 )
 from ..core.io_utils import SUPPORTED_OPEN_EXTS
 from ..core.pipeline import is_heavy_op
-from .theme import DARK_PALETTE, ThemePalette, apply_theme, detect_system_theme
+from .theme import (
+    DARK_PALETTE,
+    ThemePalette,
+    apply_theme,
+    detect_system_theme,
+    open_file_dialog,
+    save_file_dialog,
+)
 from .pipeline_worker import AsyncPipelineRunner
 from .update_checker import (
     GITHUB_RELEASES_URL,
@@ -73,6 +80,9 @@ class MainWindow(QMainWindow):
         self._pipeline = ImagePipeline(self._registry)
         self._samples = discover_sample_images()
         self._settings = QSettings("DenizSafak", "DIPS")
+        self._check_updates_on_startup: bool = bool(
+            self._settings.value("updates/check_on_startup", True, type=bool)
+        )
         self._palette: ThemePalette = DARK_PALETTE
         saved_theme = self._settings.value("ui/theme", None)
         self._theme_mode: str = str(saved_theme) if saved_theme in ("dark", "light") else detect_system_theme()
@@ -124,7 +134,7 @@ class MainWindow(QMainWindow):
         if initial_image:
             self.open_image_path(initial_image)
 
-        if os.environ.get("QT_QPA_PLATFORM") != "offscreen":
+        if self._check_updates_on_startup and os.environ.get("QT_QPA_PLATFORM") != "offscreen":
             QTimer.singleShot(1800, lambda: self.check_for_updates(silent=True))
 
     # ------------------------------------------------------------------
@@ -292,6 +302,11 @@ class MainWindow(QMainWindow):
         self._act_updates = QAction("Check for Updates...", self)
         self._act_updates.triggered.connect(lambda: self.check_for_updates(silent=False))
 
+        self._act_updates_startup = QAction("Check for Updates at Startup", self)
+        self._act_updates_startup.setCheckable(True)
+        self._act_updates_startup.setChecked(self._check_updates_on_startup)
+        self._act_updates_startup.toggled.connect(self._on_toggle_startup_updates)
+
         # Menu Bar
         mb = self.menuBar()
         m_file = mb.addMenu("&File")
@@ -363,6 +378,8 @@ class MainWindow(QMainWindow):
 
         m_help = mb.addMenu("&Help")
         m_help.addAction(self._act_updates)
+        m_help.addAction(self._act_updates_startup)
+        m_help.addSeparator()
         m_help.addAction(self._act_about)
 
         # Toolbar
@@ -442,7 +459,7 @@ class MainWindow(QMainWindow):
             self._settings.setValue("ui/theme", mode)
         app = QApplication.instance()
         if isinstance(app, QApplication):
-            self._palette = apply_theme(app, mode)
+            self._palette = apply_theme(app, mode, target=self)
         self.viewport.set_palette(self._palette)
         self.histogram_panel.set_palette(self._palette)
         self.param_panel.set_palette(self._palette)
@@ -482,8 +499,7 @@ class MainWindow(QMainWindow):
     def prompt_open_image(self) -> None:
         exts = " ".join(f"*{e}" for e in SUPPORTED_OPEN_EXTS)
         start_dir = str(self._current_path.parent if self._current_path else (self._samples[0].parent if self._samples else Path.home()))
-        path, _ = QFileDialog.getOpenFileName(
-            self,
+        path = open_file_dialog(
             "Open Image",
             start_dir,
             f"Images ({exts});;All Files (*)",
@@ -552,6 +568,10 @@ class MainWindow(QMainWindow):
         self._recompute_pipeline()
         self._update_action_states()
         self._status_file.setText(f"Applied preset: {preset_name}")
+
+    def _on_toggle_startup_updates(self, enabled: bool) -> None:
+        self._check_updates_on_startup = bool(enabled)
+        self._settings.setValue("updates/check_on_startup", self._check_updates_on_startup)
 
     def check_for_updates(self, *, silent: bool = False) -> None:
         if self._update_thread is not None and self._update_thread.isRunning():
@@ -652,8 +672,7 @@ class MainWindow(QMainWindow):
             return
         default_name = f"{self._current_path.stem}_processed.png" if self._current_path else "processed.png"
         start = str((self._current_path.parent if self._current_path else Path.home()) / default_name)
-        path, _ = QFileDialog.getSaveFileName(
-            self,
+        path = save_file_dialog(
             "Save Processed Image",
             start,
             "PNG (*.png);;JPEG (*.jpg *.jpeg);;BMP (*.bmp);;TIFF (*.tif *.tiff);;WebP (*.webp)",
@@ -1033,13 +1052,13 @@ class MainWindow(QMainWindow):
         if not self._pipeline.steps:
             QMessageBox.information(self, "Empty Pipeline", "Add at least one pipeline step before saving a preset.")
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Save Pipeline Preset", str(Path.home() / "pipeline.dips.json"), "DIP Studio Preset (*.json)")
+        path = save_file_dialog("Save Pipeline Preset", str(Path.home() / "pipeline.dips.json"), "DIP Studio Preset (*.json)")
         if path:
             out = self._pipeline.save_preset(path)
             self._status_file.setText(f"Saved preset: {out.name}")
 
     def prompt_load_preset(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Load Pipeline Preset", str(Path.home()), "DIP Studio Preset (*.json)")
+        path = open_file_dialog("Load Pipeline Preset", str(Path.home()), "DIP Studio Preset (*.json)")
         if path:
             self._load_preset_file(Path(path))
 

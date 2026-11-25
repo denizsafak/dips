@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1
+- Renamed project/package/binary identifiers from `dipstudio` to `dips` / `DIPS`.
+- Display all 16 bundled sample images in the welcome screen's Quick-Load section.
+- Hardened core & UI edge cases: alpha preservation across `ai.face_auto_crop` and `feat.document_scan`, 4-channel/2-channel/`NaN` safety, 1×1 image guards for K-Means/GLCM/ORB, thread-safe OpenCV DNN/YuNet locks, atomic temp-file model downloads with `OSError` fallback, responsive `HistogramPanel` min-width fix on Windows, and safer error handling in Export/Batch dialogs.
+- Fixed GitHub Actions release builds for Linux (`binutils`, `libfreetype6`, `libfontconfig1`), Windows (`pwsh`/`bash` test runner), and macOS (`-e ".[dev]"` metadata).
+
 ## v1.0.0
 - Initial public release of **DIP Studio** - Digital Image Processing Studio.
 - **112 non-destructive operations across 13 categories**, including **AI Studio (ONNX)** with automatic GPU hardware acceleration (`CUDA`, `CoreML`, `DirectML`, `ROCm`, `OpenVINO`) and safe CPU fallback:

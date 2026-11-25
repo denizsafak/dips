@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dips"
-version = "1.0.0"
+version = "1.0.1"
 description = "DIP Studio - Cross-Platform Digital Image Processing Studio"
 readme = "README.md"
 license = { file = "LICENSE" }

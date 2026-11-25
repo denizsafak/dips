@@ -55,7 +55,11 @@ def op_bilateral(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, d
     d = max(3, int(params.get("d", 9)))
     sc = float(params.get("sigma_color", 75.0))
     ss = float(params.get("sigma_space", 75.0))
-    out = cv2.bilateralFilter(img, d, sc, ss)
+    if img.ndim == 3 and img.shape[2] == 4:
+        bgr = cv2.bilateralFilter(np.ascontiguousarray(img[:, :, :3]), d, sc, ss)
+        out = np.dstack((bgr, img[:, :, 3]))
+    else:
+        out = cv2.bilateralFilter(img, d, sc, ss)
     return out, {"diameter": d, "sigma_color": sc, "sigma_space": ss}
 
 

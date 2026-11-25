@@ -664,10 +664,68 @@ def detect_system_theme() -> str:
     return "dark"
 
 
-def apply_theme(app: QApplication, mode: str = "dark") -> ThemePalette:
-    """Apply Dark or Light palette and QSS stylesheet to the QApplication."""
+_SYSTEM_PALETTE = None
+
+
+def apply_theme(app: QApplication, mode: str = "dark", target: QWidget | None = None) -> ThemePalette:
+    """Apply Dark or Light palette and QSS stylesheet to the app/target window."""
+    global _SYSTEM_PALETTE
+    if _SYSTEM_PALETTE is None:
+        _SYSTEM_PALETTE = app.palette()
     palette = DARK_PALETTE if mode == "dark" else LIGHT_PALETTE
     app.setStyle("Fusion")
     app.setPalette(_build_qpalette(palette))
-    app.setStyleSheet(build_stylesheet(palette))
+    qss = build_stylesheet(palette)
+    if target is not None:
+        target.setStyleSheet(qss)
+    else:
+        app.setStyleSheet(qss)
     return palette
+
+
+def _make_unthemed_file_dialog(caption: str, directory: str, name_filter: str = "") -> QFileDialog:
+    from PyQt6.QtWidgets import QFileDialog
+
+    dlg = QFileDialog(None, caption, directory, name_filter)
+    app = QApplication.instance()
+    if _SYSTEM_PALETTE is not None:
+        dlg.setPalette(_SYSTEM_PALETTE)
+    elif isinstance(app, QApplication):
+        dlg.setPalette(app.style().standardPalette())
+    return dlg
+
+
+def open_file_dialog(caption: str, directory: str, name_filter: str = "") -> str:
+    from PyQt6.QtWidgets import QFileDialog
+
+    dlg = _make_unthemed_file_dialog(caption, directory, name_filter)
+    dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
+    dlg.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+    if dlg.exec():
+        files = dlg.selectedFiles()
+        return files[0] if files else ""
+    return ""
+
+
+def save_file_dialog(caption: str, directory: str, name_filter: str = "") -> str:
+    from PyQt6.QtWidgets import QFileDialog
+
+    dlg = _make_unthemed_file_dialog(caption, directory, name_filter)
+    dlg.setFileMode(QFileDialog.FileMode.AnyFile)
+    dlg.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+    if dlg.exec():
+        files = dlg.selectedFiles()
+        return files[0] if files else ""
+    return ""
+
+
+def select_directory_dialog(caption: str, directory: str) -> str:
+    from PyQt6.QtWidgets import QFileDialog
+
+    dlg = _make_unthemed_file_dialog(caption, directory)
+    dlg.setFileMode(QFileDialog.FileMode.Directory)
+    dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+    if dlg.exec():
+        files = dlg.selectedFiles()
+        return files[0] if files else ""
+    return ""

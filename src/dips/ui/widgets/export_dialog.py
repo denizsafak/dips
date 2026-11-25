@@ -10,11 +10,11 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QSlider,
     QVBoxLayout,
@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from ...core.io_utils import SUPPORTED_SAVE_FORMATS, save_image, to_bgr
-from ..theme import configure_combobox_popup
+from ..theme import configure_combobox_popup, save_file_dialog
 
 
 class ExportDialog(QDialog):
@@ -96,8 +96,7 @@ class ExportDialog(QDialog):
     def _browse(self) -> None:
         fmt = self._format_combo.currentText()
         ext = SUPPORTED_SAVE_FORMATS[fmt]
-        path, _ = QFileDialog.getSaveFileName(
-            self,
+        path = save_file_dialog(
             "Export Processed Image",
             self._path_edit.text(),
             f"{fmt} (*{ext});;All Files (*)",
@@ -106,7 +105,11 @@ class ExportDialog(QDialog):
             self._path_edit.setText(path)
 
     def _do_export(self) -> None:
-        out = Path(self._path_edit.text().strip())
+        out_text = self._path_edit.text().strip()
+        if not out_text:
+            QMessageBox.warning(self, "Invalid Output", "Please specify an output file path.")
+            return
+        out = Path(out_text)
         img = self._result
         if self._sbs_chk.isChecked():
             o_bgr = to_bgr(self._orig)
@@ -119,11 +122,15 @@ class ExportDialog(QDialog):
 
         fmt = self._format_combo.currentText()
         val = self._quality_slider.value()
-        self.exported_path = save_image(
-            img,
-            out,
-            jpeg_quality=val if fmt == "JPEG" else 95,
-            png_compression=val if fmt == "PNG" else 3,
-            webp_quality=val if fmt == "WebP" else 92,
-        )
+        try:
+            self.exported_path = save_image(
+                img,
+                out,
+                jpeg_quality=val if fmt == "JPEG" else 95,
+                png_compression=val if fmt == "PNG" else 3,
+                webp_quality=val if fmt == "WebP" else 92,
+            )
+        except Exception as exc:
+            QMessageBox.critical(self, "Export Error", str(exc))
+            return
         self.accept()

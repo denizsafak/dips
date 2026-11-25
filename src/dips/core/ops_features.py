@@ -77,16 +77,24 @@ def op_kmeans(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, dict
     k = max(2, min(16, int(params.get("k", 4))))
     max_iter = int(params.get("attempts", 3))
 
-    if img.ndim == 2:
-        data = img.reshape(-1, 1).astype(np.float32)
+    has_alpha = img.ndim == 3 and img.shape[2] == 4
+    work = np.ascontiguousarray(img[:, :, :3]) if has_alpha else img
+    if work.ndim == 2:
+        data = work.reshape(-1, 1).astype(np.float32)
     else:
-        data = img.reshape(-1, 3).astype(np.float32)
+        data = work.reshape(-1, 3).astype(np.float32)
+
+    k_eff = min(k, int(data.shape[0]))
+    if k_eff < 2:
+        return img.copy(), {"clusters_k": k_eff}
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
-    _, labels, centers = cv2.kmeans(data, k, None, criteria, max_iter, cv2.KMEANS_PP_CENTERS)
+    _, labels, centers = cv2.kmeans(data, k_eff, None, criteria, max_iter, cv2.KMEANS_PP_CENTERS)
     centers_u8 = np.clip(np.round(centers), 0, 255).astype(np.uint8)
-    quantized = centers_u8[labels.flatten()].reshape(img.shape)
-    return quantized, {"clusters_k": k}
+    quantized = centers_u8[labels.flatten()].reshape(work.shape)
+    if has_alpha:
+        quantized = np.ascontiguousarray(np.dstack((quantized, img[:, :, 3])))
+    return quantized, {"clusters_k": k_eff}
 
 
 def op_corners(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, dict[str, Any]]:
@@ -221,6 +229,8 @@ def _order_quad_points(pts: np.ndarray) -> np.ndarray:
 
 def op_document_scan(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, dict[str, Any]]:
     """Detect dominant 4-corner document page, dewarp perspective, and apply clean scan enhancement."""
+    has_alpha = img.ndim == 3 and img.shape[2] == 4
+    alpha_ch = img[:, :, 3] if has_alpha else None
     bgr = to_bgr(img)
     h, w = bgr.shape[:2]
     gray = to_gray(bgr)
@@ -229,6 +239,7 @@ def op_document_scan(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarra
     auto_dewarp = bool(params.get("auto_dewarp", True))
 
     warped = bgr
+    warped_alpha = alpha_ch
     quad_found = False
     if auto_dewarp:
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -249,11 +260,19 @@ def op_document_scan(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarra
                 dst = np.array([[0, 0], [dw - 1, 0], [dw - 1, dh - 1], [0, dh - 1]], dtype=np.float32)
                 M = cv2.getPerspectiveTransform(rect, dst)
                 warped = cv2.warpPerspective(bgr, M, (dw, dh), flags=cv2.INTER_CUBIC)
+                if warped_alpha is not None:
+                    warped_alpha = cv2.warpPerspective(warped_alpha, M, (dw, dh), flags=cv2.INTER_CUBIC)
                 quad_found = True
                 break
 
+    def _with_alpha(result: np.ndarray) -> np.ndarray:
+        if warped_alpha is None:
+            return result
+        res_bgr = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR) if result.ndim == 2 else result[:, :, :3]
+        return np.ascontiguousarray(np.dstack((res_bgr, warped_alpha)))
+
     if look == "Original Rectified":
-        return warped, {"quad_detected": quad_found, "look": look}
+        return _with_alpha(warped), {"quad_detected": quad_found, "look": look}
 
     scan_gray = to_gray(warped)
     if look == "B&W Ink (Adaptive)":
@@ -266,7 +285,7 @@ def op_document_scan(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarra
             block,
             max(4, int(round(4 + 12 * clean_strength))),
         )
-        return bw, {"quad_detected": quad_found, "look": look}
+        return _with_alpha(bw), {"quad_detected": quad_found, "look": look}
 
     # Clean Scan (Contrast): divide out slow paper illumination variation
     bg_sigma = max(12.0, min(scan_gray.shape[:2]) / 8.0)
@@ -275,7 +294,7 @@ def op_document_scan(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarra
     clahe = cv2.createCLAHE(clipLimit=1.5 + 1.5 * clean_strength, tileGridSize=(8, 8))
     enhanced_gray = clahe.apply(np.clip(np.round(normalized), 0, 255).astype(np.uint8))
     out = cv2.addWeighted(to_gray(warped), 1.0 - clean_strength, enhanced_gray, clean_strength, 0.0)
-    return out, {"quad_detected": quad_found, "look": look}
+    return _with_alpha(out), {"quad_detected": quad_found, "look": look}
 
 
 def _quadtree_split(gray_f: np.ndarray, out: np.ndarray, y0: int, y1: int, x0: int, x1: int, std_thresh: float, min_blk: int, draw_grid: bool, leaves: list[int]) -> None:
@@ -385,6 +404,9 @@ def op_texture(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, dic
         levels = 32
         q = (gray.astype(np.int32) * (levels - 1)) // 255
         dist = max(1, int(params.get("glcm_dist", 2)))
+        if gray.shape[1] <= dist:
+            vis = np.zeros((*gray.shape, 3), dtype=np.uint8)
+            return vis, {"method": "GLCM-0°", "contrast": 0.0, "homogeneity": 1.0, "energy": 1.0}
         a = q[:, :-dist].ravel()
         b = q[:, dist:].ravel()
         glcm = np.zeros((levels, levels), dtype=np.float64)
@@ -471,6 +493,8 @@ def op_local_descriptors(img: np.ndarray, params: dict[str, Any]) -> tuple[np.nd
         kps, desc = det.detectAndCompute(gray, None)
         label = "SIFT-128D"
     else:
+        if min(gray.shape[:2]) < 2:
+            return bgr.copy(), {"detector": "ORB-256bit", "keypoints": 0, "descriptor_dim": 0}
         det = cv2.ORB_create(nfeatures=max_kp)
         kps, desc = det.detectAndCompute(gray, None)
         label = "ORB-256bit"

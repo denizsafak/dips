@@ -46,7 +46,11 @@ class _StepRowWidget(QFrame):
         self.setObjectName("SurfaceCard")
         if is_editing:
             self.setStyleSheet(
-                f"QFrame#SurfaceCard {{ border: 1px solid {palette.accent}; background-color: {palette.accent_subtle}; }}"
+                f"QFrame#SurfaceCard {{ border: 1px solid {palette.accent}; border-radius: 6px; background-color: {palette.accent_subtle}; }}"
+            )
+        else:
+            self.setStyleSheet(
+                f"QFrame#SurfaceCard {{ border: 1px solid {palette.border}; border-radius: 6px; background-color: {palette.bg_elevated}; }}"
             )
         lay = QHBoxLayout(self)
         lay.setContentsMargins(8, 6, 6, 6)

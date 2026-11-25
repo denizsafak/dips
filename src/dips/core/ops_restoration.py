@@ -57,6 +57,9 @@ def op_add_noise(img: np.ndarray, params: dict[str, Any]) -> tuple[np.ndarray, d
     if out.ndim == 2:
         out[salt] = 255
         out[pepper] = 0
+    elif out.shape[2] == 4:
+        out[salt, :3] = 255
+        out[pepper, :3] = 0
     else:
         out[salt] = [255, 255, 255]
         out[pepper] = [0, 0, 0]

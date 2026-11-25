@@ -79,13 +79,23 @@ def find_model_file(filename: str) -> Path | None:
 
 def download_file_atomic(url: str, dest: Path) -> Path:
     """Download a file to a temporary path then atomically replace `dest`."""
+    import tempfile
+
     dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(url, headers={"User-Agent": "DIPS/1.0"})
-    with urllib.request.urlopen(req, timeout=120) as resp, open(tmp, "wb") as fh:
-        shutil.copyfileobj(resp, fh, 1024 * 256)
-    tmp.replace(dest)
-    return dest
+    fd, tmp_name = tempfile.mkstemp(dir=dest.parent, prefix=f".{dest.name}.", suffix=".part")
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "wb") as fh, urllib.request.urlopen(req, timeout=120) as resp:
+            shutil.copyfileobj(resp, fh, 1024 * 256)
+        tmp.replace(dest)
+        return dest
+    except Exception:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
 
 
 def ensure_model(filename: str) -> Path:
@@ -101,7 +111,7 @@ def ensure_model(filename: str) -> Path:
     target_dir = package_models_dir() if not getattr(sys, "_MEIPASS", None) else user_models_cache_dir()
     try:
         return download_file_atomic(meta["url"], target_dir / filename)
-    except PermissionError:
+    except (PermissionError, OSError):
         return download_file_atomic(meta["url"], user_models_cache_dir() / filename)
 
 

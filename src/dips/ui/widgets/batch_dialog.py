@@ -6,7 +6,6 @@ from pathlib import Path
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
-    QFileDialog,
     QFormLayout,
     QHBoxLayout,
     QLabel,
@@ -21,6 +20,7 @@ from PyQt6.QtWidgets import (
 
 from ...core.io_utils import SUPPORTED_SAVE_FORMATS
 from ...core.pipeline import ImagePipeline
+from ..theme import configure_combobox_popup, select_directory_dialog
 
 
 class BatchDialog(QDialog):
@@ -52,7 +52,7 @@ class BatchDialog(QDialog):
         out_row.addWidget(out_btn)
         form.addRow("Output Folder:", out_row)
 
-        self._fmt_combo = QComboBox()
+        self._fmt_combo = configure_combobox_popup(QComboBox())
         self._fmt_combo.addItems(list(SUPPORTED_SAVE_FORMATS.keys()))
         form.addRow("Output Format:", self._fmt_combo)
         lay.addLayout(form)
@@ -77,19 +77,21 @@ class BatchDialog(QDialog):
         lay.addLayout(btns)
 
     def _pick_dir(self, target: QLineEdit) -> None:
-        d = QFileDialog.getExistingDirectory(self, "Select Folder", target.text() or str(Path.home()))
+        d = select_directory_dialog("Select Folder", target.text() or str(Path.home()))
         if d:
             target.setText(d)
 
     def _run_batch(self) -> None:
-        in_dir = Path(self._in_edit.text().strip())
-        out_dir = Path(self._out_edit.text().strip())
-        if not in_dir.is_dir():
+        in_text = self._in_edit.text().strip()
+        out_text = self._out_edit.text().strip()
+        in_dir = Path(in_text) if in_text else None
+        if in_dir is None or not in_dir.is_dir():
             QMessageBox.warning(self, "Invalid Input", "Please select a valid input folder.")
             return
-        if not out_dir:
+        if not out_text:
             QMessageBox.warning(self, "Invalid Output", "Please specify an output folder.")
             return
+        out_dir = Path(out_text)
 
         ext = SUPPORTED_SAVE_FORMATS[self._fmt_combo.currentText()]
         self._run_btn.setEnabled(False)
@@ -100,8 +102,13 @@ class BatchDialog(QDialog):
             self._status.setText(f"Processed {idx}/{total}: {name}")
             QApplication.processEvents()
 
-        outputs = self._pipeline.batch_process(in_dir, out_dir, out_ext=ext, progress_cb=_on_progress)
-        self._run_btn.setEnabled(True)
+        try:
+            outputs = self._pipeline.batch_process(in_dir, out_dir, out_ext=ext, progress_cb=_on_progress)
+        except Exception as exc:
+            QMessageBox.critical(self, "Batch Error", str(exc))
+            return
+        finally:
+            self._run_btn.setEnabled(True)
         QMessageBox.information(
             self,
             "Batch Complete",

@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSlider,
     QSpinBox,
     QVBoxLayout,
@@ -53,6 +54,7 @@ class ParamPanel(QWidget):
         self._spec: OperationSpec | None = None
         self._values: dict[str, Any] = {}
         self._editing_mode: bool = False
+        self._editing_index: int | None = None
         self._building: bool = False
         self._syncing_widgets: bool = False
 
@@ -181,6 +183,7 @@ class ParamPanel(QWidget):
         self._building = True
         self._spec = spec
         self._editing_mode = editing_index is not None
+        self._editing_index = editing_index
         self._values = spec.default_params()
         if initial_params:
             self._values.update(initial_params)
@@ -235,9 +238,8 @@ class ParamPanel(QWidget):
         self.set_operation(
             self._spec,
             self._spec.default_params(),
-            editing_index=None if not self._editing_mode else 0,
+            editing_index=self._editing_index,
         )
-        # Preserve actual editing title if needed
         self.paramsChanged.emit(dict(self._values))
 
     def _clear_form(self) -> None:
@@ -271,7 +273,12 @@ class ParamPanel(QWidget):
         if p.param_type == ParamType.CHOICE:
             row = QHBoxLayout()
             lbl = QLabel(p.label)
+            lbl.setMinimumWidth(0)
             combo = configure_combobox_popup(QComboBox())
+            combo.setMinimumWidth(0)
+            combo.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+            combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            combo.setMinimumContentsLength(8)
             combo.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
             combo.installEventFilter(self._wheel_guard)
             combo.addItems(list(p.choices))

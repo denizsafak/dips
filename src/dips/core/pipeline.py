@@ -29,6 +29,8 @@ _SPATIAL_ALPHA_OPS = frozenset(
         "affine.translate",
         "affine.shear",
         "affine.combined",
+        "ai.face_auto_crop",
+        "feat.document_scan",
     }
 )
 HEAVY_OPS = frozenset(
@@ -368,9 +370,11 @@ class ImagePipeline:
     # JSON Preset Persistence
     # ------------------------------------------------------------------
     def to_json_dict(self) -> dict[str, Any]:
+        from .. import __version__
+
         return {
             "app": "DIP Studio",
-            "version": "1.0.0",
+            "version": __version__,
             "steps": [
                 {"op_id": s.op_id, "enabled": s.enabled, "params": s.params, "label": s.label}
                 for s in self._steps
