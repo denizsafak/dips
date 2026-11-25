@@ -1,4 +1,4 @@
-"""DIP Studio - Digital Image Processing Studio."""
+"""DIPS - Digital Image Processing Studio."""
 
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
@@ -22,7 +22,7 @@ def _read_version() -> str:
     return "1.0.1"
 
 
-__app_name__ = "DIP Studio"
+__app_name__ = "DIPS"
 __version__ = _read_version()
 __author__ = "Deniz Şafak"
 __email__ = "denizsafak98@gmail.com"

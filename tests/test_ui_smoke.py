@@ -1,4 +1,4 @@
-"""Offscreen PyQt6 smoke tests for DIP Studio MainWindow, subprocess pipeline, and dialogs."""
+"""Offscreen PyQt6 smoke tests for DIPS MainWindow, subprocess pipeline, and dialogs."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Core domain types for DIP Studio image processing operations and pipelines."""
+"""Core domain types for DIPS image processing operations and pipelines."""
 
 from __future__ import annotations
 

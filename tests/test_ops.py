@@ -1,4 +1,4 @@
-"""Comprehensive unit tests for every registered DIP Studio operation on grayscale and BGR images."""
+"""Comprehensive unit tests for every registered DIPS operation on grayscale and BGR images."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Main studio window orchestrating DIP Studio tool browser, viewport, histogram, parameters, and pipeline."""
+"""Main studio window orchestrating DIPS tool browser, viewport, histogram, parameters, and pipeline."""
 
 from __future__ import annotations
 
@@ -588,13 +588,13 @@ class MainWindow(QMainWindow):
         self._pending_release = release
         new_ver = release["version"]
         self._update_url = release["html_url"]
-        self._update_lbl.setText(f"DIP Studio v{new_ver} is available (running v{__version__}).")
+        self._update_lbl.setText(f"DIPS v{new_ver} is available (running v{__version__}).")
         self._update_banner.setVisible(True)
 
         reply = QMessageBox.question(
             self,
             "Update Available",
-            f"A new version of DIP Studio (v{new_ver}) is available.\n"
+            f"A new version of DIPS (v{new_ver}) is available.\n"
             f"You are currently running v{__version__}.\n\n"
             "Would you like to download and install the update automatically now?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
@@ -624,7 +624,7 @@ class MainWindow(QMainWindow):
 
     def _on_up_to_date(self, cur_ver: str) -> None:
         if self._manual_update_check:
-            QMessageBox.information(self, "Up to Date", f"You are running the latest version of DIP Studio (v{cur_ver}).")
+            QMessageBox.information(self, "Up to Date", f"You are running the latest version of DIPS (v{cur_ver}).")
 
     def _on_update_check_failed(self, err: str) -> None:
         if self._manual_update_check:
@@ -1052,13 +1052,13 @@ class MainWindow(QMainWindow):
         if not self._pipeline.steps:
             QMessageBox.information(self, "Empty Pipeline", "Add at least one pipeline step before saving a preset.")
             return
-        path = save_file_dialog("Save Pipeline Preset", str(Path.home() / "pipeline.dips.json"), "DIP Studio Preset (*.json)")
+        path = save_file_dialog("Save Pipeline Preset", str(Path.home() / "pipeline.dips.json"), "DIPS Preset (*.json)")
         if path:
             out = self._pipeline.save_preset(path)
             self._status_file.setText(f"Saved preset: {out.name}")
 
     def prompt_load_preset(self) -> None:
-        path = open_file_dialog("Load Pipeline Preset", str(Path.home()), "DIP Studio Preset (*.json)")
+        path = open_file_dialog("Load Pipeline Preset", str(Path.home()), "DIPS Preset (*.json)")
         if path:
             self._load_preset_file(Path(path))
 

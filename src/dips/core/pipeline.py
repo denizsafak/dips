@@ -373,7 +373,7 @@ class ImagePipeline:
         from .. import __version__
 
         return {
-            "app": "DIP Studio",
+            "app": "DIPS",
             "version": __version__,
             "steps": [
                 {"op_id": s.op_id, "enabled": s.enabled, "params": s.params, "label": s.label}

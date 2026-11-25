@@ -1,4 +1,4 @@
-"""Linux packaging helpers for DIP Studio: .desktop entry, .deb builder, .tar.gz, and .AppImage."""
+"""Linux packaging helpers for DIPS: .desktop entry, .deb builder, .tar.gz, and .AppImage."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def build_desktop_entry(exec_target: str, *, include_appimage_keys: bool = False
     lines = [
         "[Desktop Entry]",
         "Type=Application",
-        "Name=DIP Studio",
+        "Name=DIPS",
         "GenericName=Digital Image Processing Studio",
         "Comment=Non-destructive image processing, FFT, morphology, and feature analysis studio",
         f"Exec={exec_target} %F",
@@ -62,7 +62,7 @@ def build_desktop_entry(exec_target: str, *, include_appimage_keys: bool = False
         "Terminal=false",
         "Categories=Graphics;Science;ImageProcessing;",
         "MimeType=image/png;image/jpeg;image/bmp;image/tiff;image/webp;",
-        "StartupWMClass=DIP Studio",
+        "StartupWMClass=DIPS",
     ]
     if include_appimage_keys:
         lines.append(f"X-AppImage-Version={app_version}")
@@ -240,7 +240,7 @@ def build_deb(repo_root: str | Path, version: str, architecture: str = "amd64", 
             f"Recommends: {', '.join(RECOMMENDS)}\n"
             f"Installed-Size: {_installed_size_kb(str(stage_dir))}\n"
             "Description: cross-platform digital image processing studio\n"
-            " DIP Studio is a non-destructive desktop studio for spatial filtering,\n"
+            " DIPS is a non-destructive desktop studio for spatial filtering,\n"
             " 2D FFT frequency analysis, morphology, restoration, color grading,\n"
             " and feature detection.\n"
         ).encode("utf-8")

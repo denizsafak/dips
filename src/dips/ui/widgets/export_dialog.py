@@ -37,7 +37,7 @@ class ExportDialog(QDialog):
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Export Image - DIP Studio")
+        self.setWindowTitle("Export Image - DIPS")
         self.setMinimumWidth(440)
         self._orig = orig
         self._result = result

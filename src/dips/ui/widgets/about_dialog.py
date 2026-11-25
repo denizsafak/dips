@@ -18,7 +18,7 @@ from ...assets import asset_path
 
 
 class AboutDialog(QDialog):
-    """Displays DIP Studio identity, licensing, author credits, and keyboard shortcuts."""
+    """Displays DIPS identity, licensing, author credits, and keyboard shortcuts."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)

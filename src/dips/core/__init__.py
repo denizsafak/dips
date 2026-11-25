@@ -1,4 +1,4 @@
-"""Pure NumPy/OpenCV image processing engine for DIP Studio (zero Qt dependencies)."""
+"""Pure NumPy/OpenCV image processing engine for DIPS (zero Qt dependencies)."""
 
 from .types import (
     ImageStats,

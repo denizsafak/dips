@@ -28,7 +28,7 @@ class BatchDialog(QDialog):
 
     def __init__(self, pipeline: ImagePipeline, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Batch Process Folder - DIP Studio")
+        self.setWindowTitle("Batch Process Folder - DIPS")
         self.setMinimumWidth(460)
         self._pipeline = pipeline
 

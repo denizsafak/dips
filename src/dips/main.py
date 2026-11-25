@@ -1,4 +1,4 @@
-"""Application entrypoint for DIP Studio across Windows, macOS, and Linux."""
+"""Application entrypoint for DIPS across Windows, macOS, and Linux."""
 
 from __future__ import annotations
 
@@ -68,9 +68,21 @@ def _configure_platform_identity() -> None:
         QGuiApplication.setDesktopFileName("dips")
 
 
+def _cleanup_old_update_files() -> None:
+    if platform.system() != "Windows" or not getattr(sys, "frozen", False):
+        return
+    app_dir = Path(sys.executable).resolve().parent
+    for old_file in app_dir.rglob("*.old"):
+        try:
+            old_file.unlink()
+        except OSError:
+            pass
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Launch DIP Studio application."""
+    """Launch DIPS application."""
     multiprocessing.freeze_support()
+    _cleanup_old_update_files()
     os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
     args = argv if argv is not None else sys.argv
     app = DIPSApplication(args)

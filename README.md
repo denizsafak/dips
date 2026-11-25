@@ -1,4 +1,4 @@
-# DIPS: Digital Image Processing Studio <img title="DIP Studio Icon" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips.png" width="64" align="right" style="padding-left: 10px; padding-top: 4px;">
+# DIPS: Digital Image Processing Studio <img title="DIPS Icon" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips.png" width="64" align="right" style="padding-left: 10px; padding-top: 4px;">
 
 [![Build & Release](https://github.com/denizsafak/dips/actions/workflows/publish-github.yml/badge.svg)](https://github.com/denizsafak/dips/actions/workflows/publish-github.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/denizsafak/dips)](https://github.com/denizsafak/dips/releases/latest)
@@ -6,13 +6,13 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/denizsafak/dips/total?color=blue&label=downloads)](https://github.com/denizsafak/dips/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**DIP Studio** (*Digital Image Processing Studio*) is a fast, non-destructive desktop image processing studio built with **Python**, **OpenCV**, **ONNX Runtime**, and **PyQt6**. From 19 lightweight bundled **AI Studio** tools (super-resolution upscaling, RMBG-1.4 background removal & die-cut sticker cutouts, color splash, 3D depth maps, optical depth focus, atmospheric depth fog & 3D key relighting, YOLOv8 object detection & privacy redaction, anime stylization, portrait bokeh, face detection, auto-crop, portrait retouch & privacy, low-light enhancement) with automatic GPU acceleration to **2D FFT frequency filtering**, **mathematical morphology**, **Wiener deconvolution**, **document scanning**, and **live histogram & PSNR/SSIM analysis**, DIP Studio puts an entire imaging laboratory inside a clean, familiar workspace.
+**DIPS** (*Digital Image Processing Studio*) is a fast, non-destructive desktop image processing studio built with **Python**, **OpenCV**, **ONNX Runtime**, and **PyQt6**. From 19 lightweight bundled **AI Studio** tools (super-resolution upscaling, RMBG-1.4 background removal & die-cut sticker cutouts, color splash, 3D depth maps, optical depth focus, atmospheric depth fog & 3D key relighting, YOLOv8 object detection & privacy redaction, anime stylization, portrait bokeh, face detection, auto-crop, portrait retouch & privacy, low-light enhancement) with automatic GPU acceleration to **2D FFT frequency filtering**, **mathematical morphology**, **Wiener deconvolution**, **document scanning**, and **live histogram & PSNR/SSIM analysis**, DIPS puts an entire imaging laboratory inside a clean, familiar workspace.
 
 <p align="center">
-  <img title="DIP Studio Dark Studio" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-dark.png" width="49%">
-  <img title="DIP Studio AI Studio" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-ai.png" width="49%">
-  <img title="DIP Studio Split Curtain Comparison" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-split.png" width="49%">
-  <img title="DIP Studio Light Theme" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-light.png" width="49%">
+  <img title="DIPS Dark Studio" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-dark.png" width="49%">
+  <img title="DIPS AI Studio" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-ai.png" width="49%">
+  <img title="DIPS Split Curtain Comparison" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-split.png" width="49%">
+  <img title="DIPS Light Theme" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-light.png" width="49%">
 </p>
 
 ---
@@ -85,7 +85,7 @@ dips
 - **Optional NVIDIA CUDA GPU Support:** `uv pip install -e ".[gpu-cuda]"` (or `[gpu-directml]` on Windows)
 - **Run Test Suite:** `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -v`
 - **Build Native Packages:** `.venv/bin/python scripts/build.py`
-- **Release Versioning:** Update the PEP 621 `version` field in [`pyproject.toml`](pyproject.toml) and run the manual **Build & Publish DIP Studio Release** GitHub Actions workflow.
+- **Release Versioning:** Update the PEP 621 `version` field in [`pyproject.toml`](pyproject.toml) and run the manual **Build & Publish DIPS Release** GitHub Actions workflow.
 
 ---
 

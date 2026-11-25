@@ -1,4 +1,4 @@
-"""Cross-platform build & packaging script for DIP Studio (Windows, macOS, Linux)."""
+"""Cross-platform build & packaging script for DIPS (Windows, macOS, Linux)."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ def package_linux(root: Path, version: str, *, skip_appimage: bool = False) -> l
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Build and package DIP Studio for the current platform.")
+    parser = argparse.ArgumentParser(description="Build and package DIPS for the current platform.")
     parser.add_argument("--output-name", default="DIPS", help="Base executable/bundle name (default: DIPS)")
     parser.add_argument("--onefile", action="store_true", help="Build a single-file binary (Windows/Linux)")
     parser.add_argument("--skip-appimage", action="store_true", help="Skip AppImage generation on Linux")

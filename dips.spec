@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Cross-platform PyInstaller specification for DIP Studio (Windows, macOS, Linux)."""
+"""Cross-platform PyInstaller specification for DIPS (Windows, macOS, Linux)."""
 
 from pathlib import Path
 import os
@@ -100,8 +100,8 @@ else:
             icon=str(ROOT / "src" / "dips" / "assets" / "dips.icns"),
             bundle_identifier="com.denizsafak.dips",
             info_plist={
-                "CFBundleName": "DIP Studio",
-                "CFBundleDisplayName": "DIP Studio",
+                "CFBundleName": "DIPS",
+                "CFBundleDisplayName": "DIPS",
                 "CFBundleExecutable": EXE_NAME,
                 "CFBundleIdentifier": "com.denizsafak.dips",
                 "CFBundleShortVersionString": VERSION,

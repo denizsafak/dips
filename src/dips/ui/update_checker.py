@@ -181,18 +181,30 @@ def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
     if system == "Windows":
         app_dir = exe_path.parent
         src_dir = staging / "DIPS" if (staging / "DIPS").is_dir() else staging
-        bat = staging / "apply_update.bat"
-        bat.write_text(
-            f"@echo off\r\n"
-            f":wait\r\n"
-            f"tasklist /FI \"PID eq {pid}\" 2>NUL | find /I \"{pid}\" >NUL\r\n"
-            f"if \"%ERRORLEVEL%\"==\"0\" (timeout /t 1 /nobreak >NUL & goto wait)\r\n"
-            f"xcopy /E /I /Y \"{src_dir}\\*\" \"{app_dir}\\\" >NUL\r\n"
-            f"start \"\" \"{exe_path}\"\r\n",
-            encoding="utf-8",
+        try:
+            for src_file in src_dir.rglob("*"):
+                if src_file.is_dir():
+                    continue
+                rel = src_file.relative_to(src_dir)
+                dst_file = app_dir / rel
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    shutil.copy2(src_file, dst_file)
+                except PermissionError:
+                    old_file = dst_file.with_name(dst_file.name + ".old")
+                    if old_file.exists():
+                        try:
+                            old_file.unlink()
+                        except OSError:
+                            pass
+                    dst_file.rename(old_file)
+                    shutil.copy2(src_file, dst_file)
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
+        return False, (
+            "Update files have been installed.\n\n"
+            "Please close and reopen DIPS to launch the updated version."
         )
-        subprocess.Popen(["cmd", "/c", str(bat)], creationflags=0x08000000)
-        return True, "Applying Windows update and restarting..."
 
     if system == "Darwin":
         # exe_path is .../DIPS.app/Contents/MacOS/DIPS
@@ -215,7 +227,7 @@ def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
 
     # Frozen Linux tarball
     app_dir = exe_path.parent
-    src_dir = staging / "DIP Studio" if (staging / "DIP Studio").is_dir() else staging
+    src_dir = staging / "DIPS" if (staging / "DIPS").is_dir() else staging
     sh_script = staging / "apply_update.sh"
     sh_script.write_text(
         "#!/bin/sh\n"
@@ -235,13 +247,13 @@ class SelfUpdateDialog(QDialog):
 
     def __init__(self, version: str, asset_name: str, download_url: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Updating DIP Studio")
+        self.setWindowTitle("Updating DIPS")
         self.setMinimumWidth(420)
         self._restarting = False
 
         lay = QVBoxLayout(self)
         lay.setSpacing(10)
-        self._lbl = QLabel(f"Downloading DIP Studio v{version} ({asset_name})...")
+        self._lbl = QLabel(f"Downloading DIPS v{version} ({asset_name})...")
         lay.addWidget(self._lbl)
 
         self._bar = QProgressBar()
@@ -269,7 +281,7 @@ class SelfUpdateDialog(QDialog):
             will_restart, msg = apply_downloaded_update(Path(path_str))
             self._restarting = will_restart
             if not will_restart:
-                QMessageBox.information(self, "Update Downloaded", msg)
+                QMessageBox.information(self, "Update Ready", msg)
             self.accept()
         except Exception as exc:
             self._on_failed(str(exc))

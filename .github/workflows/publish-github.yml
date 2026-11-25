@@ -1,4 +1,4 @@
-name: Build & Publish DIP Studio Release
+name: Build & Publish DIPS Release
 
 on:
   workflow_dispatch:

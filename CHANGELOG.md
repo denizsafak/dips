@@ -7,7 +7,7 @@
 - Fixed GitHub Actions release builds for Linux (`binutils`, `libfreetype6`, `libfontconfig1`), Windows (`pwsh`/`bash` test runner), and macOS (`-e ".[dev]"` metadata).
 
 ## v1.0.0
-- Initial public release of **DIP Studio** - Digital Image Processing Studio.
+- Initial public release of **DIPS** - Digital Image Processing Studio.
 - **112 non-destructive operations across 13 categories**, including **AI Studio (ONNX)** with automatic GPU hardware acceleration (`CUDA`, `CoreML`, `DirectML`, `ROCm`, `OpenVINO`) and safe CPU fallback:
   - **19 AI Studio Tools:** Super-Resolution (ESPCN 3x & 4x-UltraSharp), Background Removal & Die-Cut Sticker Cutout (RMBG-1.4, MODNet, U2-Net-p), Color Splash (Subject Pop), Portrait Bokeh, 3D Depth Map, 3D Depth Focus, 3D Depth Fog & 3D Depth Relighting (Depth Anything V2), Object Detection & Object Privacy Redactor (YOLOv8n), Anime / Illustration (AnimeGANv2), Face & Landmark Detection, Face Privacy, Smart Portrait Auto-Crop (Close-up Face default) & Portrait Retouch (YuNet), Neural Style Transfer, Low-Light Night Enhance, and Smart Auto-Enhance.
   - Full classic CV & Chapters 3-7 coverage: Multi-Level/Iterative `T*` & Niblack/Sauvola thresholds, Morphological Hole Filling, Convex Hull, Hit-or-Miss, Zhang-Suen Thinning/Pruning, Point & Line masks, HSV Color Slicing, YCbCr Skin Detector, Color Edge Vector Gradients, Region Growing & Quadtree Split-Merge, Scale-Space Blobs (LoG/DoG/DoH), LBP/Gabor/GLCM Texture, HOG, and SIFT/ORB Local Descriptors.
