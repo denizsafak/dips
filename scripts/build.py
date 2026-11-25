@@ -29,7 +29,7 @@ def arch_tag() -> str:
     return m
 
 
-def run_pyinstaller(root: Path, exe_name: str = "DIP Studio", *, onefile: bool = False) -> None:
+def run_pyinstaller(root: Path, exe_name: str = "DIPS", *, onefile: bool = False) -> None:
     env = os.environ.copy()
     env["DIPS_EXE_NAME"] = exe_name
     env["DIPS_ONEFILE"] = "1" if onefile else "0"
@@ -45,7 +45,7 @@ def zip_directory(src_dir: Path, zip_path: Path) -> None:
                 zf.write(p, p.relative_to(src_dir.parent))
 
 
-def package_windows(root: Path, exe_name: str = "DIP Studio") -> Path:
+def package_windows(root: Path, exe_name: str = "DIPS") -> Path:
     bundle = root / "dist" / exe_name
     out_zip = root / f"{exe_name}-windows-{arch_tag()}.zip"
     if bundle.is_dir():
@@ -58,7 +58,7 @@ def package_windows(root: Path, exe_name: str = "DIP Studio") -> Path:
     return out_zip
 
 
-def package_macos(root: Path, exe_name: str = "DIP Studio") -> Path:
+def package_macos(root: Path, exe_name: str = "DIPS") -> Path:
     app_bundle = root / "dist" / f"{exe_name}.app"
     if not app_bundle.is_dir():
         raise FileNotFoundError(f"macOS bundle not found: {app_bundle}")
@@ -96,7 +96,7 @@ def package_linux(root: Path, version: str, *, skip_appimage: bool = False) -> l
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build and package DIP Studio for the current platform.")
-    parser.add_argument("--output-name", default="DIP Studio", help="Base executable/bundle name (default: DIPS)")
+    parser.add_argument("--output-name", default="DIPS", help="Base executable/bundle name (default: DIPS)")
     parser.add_argument("--onefile", action="store_true", help="Build a single-file binary (Windows/Linux)")
     parser.add_argument("--skip-appimage", action="store_true", help="Skip AppImage generation on Linux")
     args = parser.parse_args()

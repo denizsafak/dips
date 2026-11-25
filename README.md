@@ -1,4 +1,4 @@
-# DIP Studio: Cross-Platform Digital Image Processing Studio <img title="DIP Studio Icon" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips.png" width="64" align="right" style="padding-left: 10px; padding-top: 4px;">
+# DIP Studio: Digital Image Processing Studio <img title="DIP Studio Icon" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips.png" width="64" align="right" style="padding-left: 10px; padding-top: 4px;">
 
 [![Build & Release](https://github.com/denizsafak/dips/actions/workflows/publish-github.yml/badge.svg)](https://github.com/denizsafak/dips/actions/workflows/publish-github.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/denizsafak/dips)](https://github.com/denizsafak/dips/releases/latest)

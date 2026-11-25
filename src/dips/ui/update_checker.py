@@ -180,7 +180,7 @@ def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
     exe_path = Path(sys.executable).resolve()
     if system == "Windows":
         app_dir = exe_path.parent
-        src_dir = staging / "DIP Studio" if (staging / "DIP Studio").is_dir() else staging
+        src_dir = staging / "DIPS" if (staging / "DIPS").is_dir() else staging
         bat = staging / "apply_update.bat"
         bat.write_text(
             f"@echo off\r\n"
@@ -195,7 +195,7 @@ def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
         return True, "Applying Windows update and restarting..."
 
     if system == "Darwin":
-        # exe_path is .../DIPS.app/Contents/MacOS/DIP Studio
+        # exe_path is .../DIPS.app/Contents/MacOS/DIPS
         app_bundle = exe_path.parents[2] if exe_path.parents[2].name.endswith(".app") else exe_path.parent
         new_app = next(staging.glob("*.app"), None)
         if new_app is None:
