@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import shutil
 import sys
+import tempfile
 import urllib.request
 
 MODELS_MANIFEST: dict[str, dict[str, str]] = {
@@ -79,8 +81,6 @@ def find_model_file(filename: str) -> Path | None:
 
 def download_file_atomic(url: str, dest: Path) -> Path:
     """Download a file to a temporary path then atomically replace `dest`."""
-    import tempfile
-
     dest.parent.mkdir(parents=True, exist_ok=True)
     req = urllib.request.Request(url, headers={"User-Agent": "DIPS/1.0"})
     fd, tmp_name = tempfile.mkstemp(dir=dest.parent, prefix=f".{dest.name}.", suffix=".part")
