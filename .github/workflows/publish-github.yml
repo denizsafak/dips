@@ -41,6 +41,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -106,6 +108,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build Linux AppImage, Debian .deb, and tarball in Docker
         run: |
@@ -145,6 +149,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -161,11 +167,29 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_ENV"
 
+      - name: Collect commits
+        run: |
+          cur_tag="v${{ needs.build.outputs.version }}"
+          prev_tag=$(git describe --tags --abbrev=0 --exclude "$cur_tag" 2>/dev/null || true)
+          if [ -n "$prev_tag" ]; then
+            commits=$(git log "${prev_tag}..HEAD" --pretty=format:"* %s (%h)")
+          else
+            commits=$(git log --pretty=format:"* %s (%h)")
+          fi
+          if [ -z "$commits" ]; then
+            commits="* Initial release"
+          fi
+          {
+            echo "COMMITS<<EOF"
+            echo "$commits"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ needs.build.outputs.version }}"
-          name: "DIP Studio v${{ needs.build.outputs.version }}"
+          name: "DIPS v${{ needs.build.outputs.version }}"
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
           overwrite: true
@@ -179,5 +203,8 @@ jobs:
             * **Linux (AppImage):** [DIPS-linux-amd64.AppImage](https://github.com/${{ github.repository }}/releases/download/v${{ needs.build.outputs.version }}/DIPS-linux-amd64.AppImage)
             * **Linux (Debian / Ubuntu / Mint):** [DIPS-linux-amd64.deb](https://github.com/${{ github.repository }}/releases/download/v${{ needs.build.outputs.version }}/DIPS-linux-amd64.deb)
             * **Linux (Tarball):** [DIPS-linux-amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.build.outputs.version }}/DIPS-linux-amd64.tar.gz)
+
+            ### Commits
+            ${{ env.COMMITS }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
