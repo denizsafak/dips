@@ -124,15 +124,22 @@ class UpdateDownloadThread(QThread):
         super().__init__(parent)
         self._url = url
         self._dest = dest
+        self._cancelled = False
+
+    def cancel(self) -> None:
+        self._cancelled = True
+        self.requestInterruption()
 
     def run(self) -> None:
         try:
             self._dest.parent.mkdir(parents=True, exist_ok=True)
             req = urllib.request.Request(self._url, headers={"User-Agent": f"DIPS/{__version__}"})
-            with urllib.request.urlopen(req, timeout=120) as resp, open(self._dest, "wb") as fh:
+            with urllib.request.urlopen(req, timeout=15) as resp, open(self._dest, "wb") as fh:
                 total = int(resp.headers.get("Content-Length", "0") or "0")
                 done = 0
                 while True:
+                    if self._cancelled or self.isInterruptionRequested():
+                        break
                     chunk = resp.read(1024 * 128)
                     if not chunk:
                         break
@@ -140,10 +147,17 @@ class UpdateDownloadThread(QThread):
                     done += len(chunk)
                     if total > 0:
                         self.progress.emit(min(100, int(done * 100 / total)))
+            if self._cancelled or self.isInterruptionRequested():
+                try:
+                    self._dest.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                return
             self.progress.emit(100)
             self.finishedDownload.emit(str(self._dest))
         except Exception as exc:
-            self.failed.emit(str(exc))
+            if not (self._cancelled or self.isInterruptionRequested()):
+                self.failed.emit(str(exc))
 
 
 def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
@@ -268,11 +282,30 @@ class SelfUpdateDialog(QDialog):
         lay.addLayout(row)
 
         dest = Path(tempfile.gettempdir()) / asset_name
-        self._dl = UpdateDownloadThread(download_url, dest, self)
+        self._dl = UpdateDownloadThread(download_url, dest)
+        self._dl.finished.connect(self._dl.deleteLater)
         self._dl.progress.connect(self._bar.setValue)
         self._dl.finishedDownload.connect(self._on_downloaded)
         self._dl.failed.connect(self._on_failed)
         self._dl.start()
+
+    def _cancel_download(self) -> None:
+        self._dl.cancel()
+        for sig in (self._dl.progress, self._dl.finishedDownload, self._dl.failed):
+            try:
+                sig.disconnect()
+            except Exception:
+                pass
+        if self._dl.isRunning():
+            self._dl.wait(250)
+
+    def reject(self) -> None:
+        self._cancel_download()
+        super().reject()
+
+    def closeEvent(self, event) -> None:
+        self._cancel_download()
+        super().closeEvent(event)
 
     def _on_downloaded(self, path_str: str) -> None:
         self._lbl.setText("Installing update...")
