@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, initial_image: str | Path | None = None) -> None:
         super().__init__()
-        self.setWindowTitle(f"{__app_name__} - Digital Image Processing Studio")
+        self.setWindowTitle(f"{__app_name__} v{__version__} - Digital Image Processing Studio")
         self.resize(1440, 880)
         self.setMinimumSize(1080, 680)
 

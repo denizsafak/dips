@@ -112,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
     if not os.environ.get("PYTEST_CURRENT_TEST"):
+        _cleanup_old_update_files()
         try:
             sys.stdout.flush()
             sys.stderr.flush()

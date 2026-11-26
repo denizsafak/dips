@@ -191,19 +191,19 @@ def apply_downloaded_update(package_path: Path) -> tuple[bool, str]:
                 try:
                     shutil.copy2(src_file, dst_file)
                 except PermissionError:
-                    old_file = dst_file.with_name(dst_file.name + ".old")
+                    old_file = dst_file.with_name(f"{dst_file.name}.old")
                     if old_file.exists():
                         try:
                             old_file.unlink()
                         except OSError:
-                            pass
+                            old_file = dst_file.with_name(f"{dst_file.name}.{pid}.old")
                     dst_file.rename(old_file)
                     shutil.copy2(src_file, dst_file)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
         return False, (
             "Update files have been installed.\n\n"
-            "Please close and reopen DIPS to launch the updated version."
+            "Click OK to close DIPS, then reopen it to launch the updated version."
         )
 
     if system == "Darwin":
@@ -279,9 +279,11 @@ class SelfUpdateDialog(QDialog):
         QApplication.processEvents()
         try:
             will_restart, msg = apply_downloaded_update(Path(path_str))
-            self._restarting = will_restart
             if not will_restart:
                 QMessageBox.information(self, "Update Ready", msg)
+            self._restarting = will_restart or (
+                platform.system() == "Windows" and bool(getattr(sys, "frozen", False))
+            )
             self.accept()
         except Exception as exc:
             self._on_failed(str(exc))
