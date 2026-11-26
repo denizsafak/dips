@@ -6,7 +6,7 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/denizsafak/dips/total?color=blue&label=downloads)](https://github.com/denizsafak/dips/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**DIPS** (*Digital Image Processing Studio*) is a fast, non-destructive desktop image processing studio built with **Python**, **OpenCV**, **ONNX Runtime**, and **PyQt6**. From 19 lightweight bundled **AI Studio** tools (super-resolution upscaling, RMBG-1.4 background removal & die-cut sticker cutouts, color splash, 3D depth maps, optical depth focus, atmospheric depth fog & 3D key relighting, YOLOv8 object detection & privacy redaction, anime stylization, portrait bokeh, face detection, auto-crop, portrait retouch & privacy, low-light enhancement) with automatic GPU acceleration to **2D FFT frequency filtering**, **mathematical morphology**, **Wiener deconvolution**, **document scanning**, and **live histogram & PSNR/SSIM analysis**, DIPS puts an entire imaging laboratory inside a clean, familiar workspace.
+**DIPS** (*Digital Image Processing Studio*) is a fast, non-destructive desktop image processing studio built with **Python**, **OpenCV**, **ONNX Runtime**, and **PyQt6**. From 19 lightweight bundled **AI Studio** tools with automatic GPU acceleration to **2D FFT frequency filtering**, **mathematical morphology**, **Wiener deconvolution**, **document scanning**, and **live histogram & PSNR/SSIM analysis**, DIPS puts a complete imaging laboratory inside a clean, responsive workspace.
 
 <p align="center">
   <img title="DIPS Dark Studio" src="https://raw.githubusercontent.com/denizsafak/dips/main/images/dips-dark.png" width="49%">
@@ -17,10 +17,20 @@
 
 ---
 
-## How to Install
+## Highlights
+
+- **Non-Destructive Pipeline & Prefix Caching:** Build, reorder, toggle, duplicate, or edit any step in a descending operation stack (`N..1`) with full Undo/Redo, RGBA alpha preservation across downstream and spatial transforms, 60 FPS fast-path previews, and a cancellable warm subprocess worker for heavy AI/FFT operations.
+- **Synchronized Dual Viewport:** Inspect images in **Side-by-Side**, **Split Curtain**, **Difference Map**, or **Result Only** modes (`1`–`4`) with synchronized pan/zoom, interactive Crop & Aspect Frame overlay, and a live pixel inspector (RGB, Alpha, Grayscale, HSV).
+- **Live Histogram & Image Quality Metrics:** Responsive 256-bin histogram (**Result**, **Original**, or **Overlay**) with **Log** scale, **CDF** curve, and real-time **Mean**, **Std**, **Range**, **Median**, **Entropy**, **PSNR**, and **SSIM** readouts.
+- **19 Bundled AI Studio Tools (ONNX):** Automatic GPU execution (`CUDA`, `CoreML`, `DirectML`, `ROCm`, `OpenVINO`) with safe CPU fallback.
+- **Workflow & Batch Productivity:** One-click built-in presets, `.dips.json` preset import/export and drag-and-drop, batch folder processing, flexible export (PNG, JPEG, BMP, TIFF, WebP + optional Side-by-Side comparison sheet), clipboard copy/paste, 16 bundled sample images, Light/Dark theme (`Ctrl+T`) with OS auto-detection, and built-in GitHub Releases update checking (toggleable under **Help**).
+
+---
+
+## Installation
 
 ### Windows
-1. Download the latest [`DIPS-windows-amd64.zip`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-windows-amd64.zip).
+1. Download [`DIPS-windows-amd64.zip`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-windows-amd64.zip).
 2. Extract the archive.
 3. Double-click `DIPS.exe` to launch.
 
@@ -37,17 +47,17 @@
 > ```
 
 ### Linux
-1. **AppImage (Universal):** Download [`DIPS-linux-amd64.AppImage`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-linux-amd64.AppImage), mark executable (`chmod +x DIPS-linux-amd64.AppImage`), and double-click to run.
+1. **AppImage (Universal):** Download [`DIPS-linux-amd64.AppImage`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-linux-amd64.AppImage), mark it executable (`chmod +x DIPS-linux-amd64.AppImage`), and run it.
 2. **Debian / Ubuntu / Linux Mint:** Download [`DIPS-linux-amd64.deb`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-linux-amd64.deb) and install with:
    ```bash
    sudo apt install ./DIPS-linux-amd64.deb
    ```
    Installs under `/opt/dips`, adds the `dips` command, and registers a desktop launcher.
-3. **Tarball:** Download [`DIPS-linux-amd64.tar.gz`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-linux-amd64.tar.gz), extract, and run `./DIPS/DIPS`.
+3. **Tarball:** Download [`DIPS-linux-amd64.tar.gz`](https://github.com/denizsafak/dips/releases/latest/download/DIPS-linux-amd64.tar.gz), extract it, and run `./DIPS/DIPS`.
 
 ---
 
-## Key Capabilities
+## Operations Catalog
 
 <details open>
 <summary><strong>112 Non-Destructive Operations across 13 Categories</strong></summary>
@@ -72,22 +82,23 @@
 
 ---
 
-## Run from Source & Package
+## Run from Source & Development
 
 ```bash
 uv venv --python 3.12 .venv
 source .venv/bin/activate
-uv pip install .
+uv pip install -e ".[dev]"
 dips
 ```
 
-- **Dev & Test Dependencies:** `uv pip install -e ".[dev]"`
-- **Optional NVIDIA CUDA GPU Support:** `uv pip install -e ".[gpu-cuda]"` (or `[gpu-directml]` on Windows)
+- **Optional GPU Acceleration:** `uv pip install -e ".[gpu-cuda]"` (NVIDIA CUDA) or `uv pip install -e ".[gpu-directml]"` (Windows DirectML).
+- **Download AI Models Ahead of Time (Optional):** `.venv/bin/python scripts/download_models.py` (models are also downloaded on demand to `~/.cache/dips/models`).
 - **Run Test Suite:** `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -v`
 - **Build Native Packages:** `.venv/bin/python scripts/build.py`
-- **Release Versioning:** Update the PEP 621 `version` field in [`pyproject.toml`](pyproject.toml) and run the manual **Build & Publish DIPS Release** GitHub Actions workflow.
+- **Release Versioning:** Update `version` in [`pyproject.toml`](pyproject.toml) and [`CHANGELOG.md`](CHANGELOG.md), then trigger the manual **Build & Publish DIPS Release** GitHub Actions workflow.
 
 ---
 
 ## License
-MIT License - Copyright © 2026 **Deniz Şafak**
+
+MIT License — Copyright © 2026 **Deniz Şafak**
